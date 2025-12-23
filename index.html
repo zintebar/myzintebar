@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZinteBar v1.1 - Kashmir Ka Apna App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeOut 0.5s ease 2.5s forwards;
+            overflow: hidden;
+        }
+
+        #splashScreen::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .splash-logo {
+            font-size: 4rem;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 20px rgba(255,255,255,0.5),
+                         0 0 40px rgba(255,255,255,0.3);
+            animation: logoGlow 2s ease-in-out infinite, bounceIn 1s ease;
+            margin-bottom: 15px;
+            letter-spacing: 3px;
+        }
+
+        .splash-tagline {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.95);
+            font-weight: 500;
+            animation: slideUp 1s ease 0.3s both;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            letter-spacing: 1px;
+        }
+
+        @keyframes logoGlow {
+            0%, 100% { 
+                text-shadow: 0 0 20px rgba(255,255,255,0.5),
+                            0 0 40px rgba(255,255,255,0.3),
+                            0 0 60px rgba(255,255,255,0.2);
+            }
+            50% { 
+                text-shadow: 0 0 30px rgba(255,255,255,0.8),
+                            0 0 60px rgba(255,255,255,0.5),
+                            0 0 90px rgba(255,255,255,0.3);
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes bounceIn {
+            0% { 
+                opacity: 0;
+                transform: scale(0.3) translateY(-50px);
+            }
+            50% {
+                transform: scale(1.05) translateY(0);
+            }
+            70% {
+                transform: scale(0.95);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        #app {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .header {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .district-badge {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .district-badge:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+        .admin-icon {
+            width: 40px;
+            height: 40px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .admin-icon:hover {
+            background: #5568d3;
+            transform: scale(1.1);
+        }
+
+        .district-selection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .district-selection.show {
+            display: flex;
+        }
+
+        .district-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .district-box h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .district-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .district-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .admin-login {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .admin-login.show {
+            display: flex;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .login-box h2 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 20px;
+        }
+
+        .login-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .booking-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .booking-modal.show {
+            display: flex;
+        }
+
+        .booking-form-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 450px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .booking-form-box h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+
+        .booking-form-box input,
+        .booking-form-box textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .booking-form-box input:focus,
+        .booking-form-box textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .booking-form-box textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .booking-form-box label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .footer p {
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .page {
+            display: none;
+            padding: 20px;
+            min-height: calc(100vh - 70px);
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .sections-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .section-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .section-card h3 {
+            color: #667eea;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        .section-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .section-delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: none;
+        }
+
+        .admin-mode .section-delete-btn {
+            display: block;
+        }
+
+        .categories-list {
+            margin-top: 20px;
+        }
+
+        .category-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .category-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .category-item h3 {
+            font-size: 1.1rem;
+        }
+
+        .arrow {
+            font-size: 1.5rem;
+        }
+
+        .category-delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+            display: none;
+        }
+
+        .admin-mode .category-delete-btn {
+            display: block;
+        }
+
+        .services-container {
+            margin-top: 20px;
+        }
+
+        .service-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .service-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .service-card p {
+            margin: 10px 0;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .service-card strong {
+            color: #333;
+        }
+
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid white;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #764ba2;
+            background: white;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .days-selection {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .day-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .day-checkbox:hover {
+            background: white;
+            transform: scale(1.02);
+        }
+
+        .day-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .day-checkbox label {
+            cursor: pointer;
+            margin: 0;
+            color: #333;
+        }
+
+        .page-title {
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .success-icon {
+            text-align: center;
+            font-size: 5rem;
+            color: white;
+            margin: 30px 0;
+        }
+
+        .status-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .status-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .status-item strong {
+            color: #667eea;
+        }
+
+        .pending-status {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .approved-status {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .sections-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-name {
+                font-size: 1.5rem;
+            }
+
+            .section-card {
+                padding: 25px 15px;
+            }
+
+            .login-box {
+                padding: 30px 20px;
+            }
+
+            .days-selection {
+                grid-template-columns: 1fr;
+            }
+
+            .splash-logo {
+                font-size: 3rem;
+            }
+
+            .splash-tagline {
+                font-size: 1rem;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2rem;
+            padding: 20px;
+        }
+
+        .loading:after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .whatsapp-btn {
+            background: #25D366 !important;
+            margin-top: 15px;
+        }
+
+        .whatsapp-btn:hover {
+            background: #1ea952 !important;
+        }
+
+        .call-btn {
+            background: #007bff !important;
+            margin-top: 10px;
+        }
+
+        .call-btn:hover {
+            background: #0056b3 !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="splashScreen">
+        <div class="splash-content">
+            <div class="splash-logo">ZinteBar</div>
+            <div class="splash-tagline">Kashmir Ka Apna App</div>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="header">
+            <div class="app-name">ZinteBar</div>
+            <div class="header-right">
+                <div class="district-badge" id="districtBadge" onclick="showDistrictSelection()">Select District</div>
+                <div class="admin-icon" id="whatsappIcon" style="background: #25D366; display: none;" onclick="sendAdminWhatsAppMessage()" title="Message Admin on WhatsApp">💬</div>
+                <div class="admin-icon" onclick="showAdminLogin()">👤</div>
+            </div>
+        </div>
+<div class="district-selection" id="districtSelection">
+            <div class="district-box">
+                <h2>📍 Select Your District</h2>
+                <div class="district-item" onclick="selectDistrict('Srinagar')">
+                    <span>Srinagar</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Anantnag')">
+                    <span>Anantnag</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Baramulla')">
+                    <span>Baramulla</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Bandipora')">
+                    <span>Bandipora</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Budgam')">
+                    <span>Budgam</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Ganderbal')">
+                    <span>Ganderbal</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Kupwara')">
+                    <span>Kupwara</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Kulgam')">
+                    <span>Kulgam</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Pulwama')">
+                    <span>Pulwama</span>
+                    <span class="arrow">→</span>
+                </div>
+                <div class="district-item" onclick="selectDistrict('Shopian')">
+                    <span>Shopian</span>
+                    <span class="arrow">→</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="admin-login" id="adminLogin">
+            <div class="login-box">
+                <h2>Admin Login</h2>
+                <input type="password" id="adminPassword" class="login-input" placeholder="Enter Admin Password">
+                <button class="btn" onclick="checkAdminLogin()">Login</button>
+                <button class="btn" style="background: #6c757d; margin-top: 10px;" onclick="closeAdminLogin()">Cancel</button>
+            </div>
+        </div>
+
+        <div class="booking-modal" id="bookingModal">
+            <div class="booking-form-box">
+                <h2 id="bookingModalTitle">Book Service</h2>
+                <div id="bookingModalContent"></div>
+            </div>
+        </div>
+
+        <div id="home" class="page active">
+            <div class="sections-grid" id="sectionsGrid"></div>
+            <button class="btn" id="addSectionBtn" style="margin-top: 30px; display: none;" onclick="showAddSection()">+ Add New Section</button>
+            <div class="footer">
+                <p>Made by Sahil Ahmad Najar</p>
+            </div>
+        </div>
+
+        <div id="sectionPage" class="page">
+            <button class="back-btn" onclick="navigateTo('home')">← Back</button>
+            <h2 id="sectionPageTitle" style="color: white; margin-bottom: 20px;"></h2>
+            <div id="categoriesContainer"></div>
+            <button class="btn" id="addCategoryBtn" style="margin-top: 20px; display: none;">+ Add Category</button>
+            <button class="btn" id="registerServiceBtn" style="margin-top: 10px;">Register Your Service</button>
+        </div>
+
+        <div id="categoryPage" class="page">
+            <button class="back-btn" onclick="goBackToSection()">← Back</button>
+            <h2 id="categoryPageTitle" style="color: white; margin-bottom: 20px;"></h2>
+            <div id="categoryServicesContainer" class="services-container"></div>
+            <button class="btn" id="addServiceBtn" style="margin-top: 20px; display: none;">+ Add Service</button>
+        </div>
+
+        <div id="addServicePage" class="page">
+            <button class="back-btn" onclick="goBackToCategory()">← Back</button>
+            <h2 class="page-title">Add Service</h2>
+            <div id="serviceFormContainer"></div>
+        </div>
+
+        <div id="registration" class="page">
+            <button class="back-btn" onclick="navigateTo('home')">← Back</button>
+            <h2 class="page-title">Service Registration</h2>
+            <div class="form-group">
+                <label>Your Name *</label>
+                <input type="text" id="regName" placeholder="Enter your name">
+            </div>
+            <div class="form-group">
+                <label>Address *</label>
+                <textarea id="regAddress" placeholder="Enter your address"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Phone Number *</label>
+                <input type="tel" id="regPhone" placeholder="Enter your phone number">
+            </div>
+            <div class="form-group">
+                <label>Business Licence Number *</label>
+                <input type="text" id="regLicence" placeholder="Enter licence number">
+            </div>
+            <div class="form-group" id="categorySelectGroup">
+                <label>Select Category *</label>
+                <select id="regCategory"></select>
+            </div>
+            <button class="btn" onclick="submitRegistration()">Submit Registration</button>
+        </div>
+
+        <div id="successPage" class="page">
+            <div class="success-icon">✅</div>
+            <h2 class="page-title">Registration Submitted!</h2>
+            <div class="status-container">
+                <div class="status-item">
+                    <strong>Status:</strong> <span class="pending-status" id="userStatus">Pending</span>
+                </div>
+                <div class="status-item">
+                    <strong>Service:</strong> <span id="userService"></span>
+                </div>
+                <div class="status-item">
+                    <strong>District:</strong> <span id="userDistrict"></span>
+                </div>
+                <div class="status-item">
+                    <strong>Submitted On:</strong> <span id="submittedDate"></span>
+                </div>
+                <p style="margin-top: 20px; color: #555; text-align: center;">
+                    Your registration has been sent to admin for approval. You will be contacted soon!
+                </p>
+            </div>
+            <button class="btn" onclick="navigateTo('home')" style="margin-top: 30px;">Back to Home</button>
+        </div>
+
+        <div id="addSectionPage" class="page">
+            <button class="back-btn" onclick="navigateTo('home')">← Back</button>
+            <h2 class="page-title">Add New Section</h2>
+            <div class="form-group">
+                <label>Section Name *</label>
+                <input type="text" id="newSectionName" placeholder="e.g., Medical, Food, Transport">
+            </div>
+            <div class="form-group">
+                <label>Section Icon (Emoji) *</label>
+                <input type="text" id="newSectionIcon" placeholder="e.g., 🏥, 🍕, 🚗">
+            </div>
+            <button class="btn" onclick="submitNewSection()">Add Section</button>
+        </div>
+
+        <div id="addCategoryPage" class="page">
+            <button class="back-btn" onclick="goBackToSection()">← Back</button>
+            <h2 class="page-title">Add New Category</h2>
+            <div class="form-group">
+                <label>Category Name *</label>
+                <input type="text" id="newCategoryName" placeholder="e.g., General Physician, Pizza">
+            </div>
+            <div class="form-group">
+                <label>Category Icon (Emoji) *</label>
+                <input type="text" id="newCategoryIcon" placeholder="e.g., 👨‍⚕️, 🍕">
+            </div>
+            <button class="btn" onclick="submitNewCategory()">Add Category</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <script>
+        // versionCode = 2, versionName = 1.1
+        const APP_VERSION = "1.1";
+        const VERSION_CODE = 2;
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDogikDDVKxf_j5heBatQKoS9G1eoN03Cw",
+            authDomain: "zintebar-app.firebaseapp.com",
+            databaseURL: "https://zintebar-app-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "zintebar-app",
+            storageBucket: "zintebar-app.firebasestorage.app",
+            messagingSenderId: "929526210390",
+            appId: "1:929526210390:web:79401c53782c50f5e280f7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let isAdminLoggedIn = false;
+        let currentDistrict = '';
+        let currentSection = '';
+        let currentCategory = '';
+        let appStructure = {};
+        let currentServiceData = {};
+
+        const defaultStructure = {
+            'Medical': {
+                icon: '🏥',
+                categories: {
+                    'General Physician': { icon: '👨‍⚕️' },
+                    'Cardiologist': { icon: '❤️' },
+                    'Dermatologist': { icon: '🧴' },
+                    'Pediatrician': { icon: '👶' },
+                    'Orthopedic': { icon: '🦴' },
+                    'ENT Specialist': { icon: '👂' },
+                    'Dentist': { icon: '🦷' },
+                    'Gynecologist': { icon: '👩‍⚕️' },
+                    'Neurologist': { icon: '🧠' },
+                    'Ophthalmologist': { icon: '👁️' },
+                    'Psychiatrist': { icon: '🧘' }
+                }
+            },
+            'Order Food': {
+                icon: '🍔',
+                categories: {
+                    'Restaurants': { icon: '🍽️' }
+                }
+            },
+            'Night Stay': {
+                icon: '🏨',
+                categories: {
+                    'Hotels': { icon: '🛏️' }
+                }
+            },
+            'Booking Cabs': {
+                icon: '🚗',
+                categories: {
+                    'Taxi Services': { icon: '🚕' }
+                }
+            }
+        };
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('splashScreen').style.display = 'none';
+                document.getElementById('app').style.display = 'block';
+                initializeApp();
+            }, 3000);
+        });
+
+        function initializeApp() {
+            database.ref('appStructure').once('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    appStructure = snapshot.val();
+                } else {
+                    appStructure = defaultStructure;
+                    database.ref('appStructure').set(defaultStructure);
+                }
+                renderHomeSections();
+                showDistrictSelection();
+            });
+        }
+
+        function renderHomeSections() {
+            const grid = document.getElementById('sectionsGrid');
+            grid.innerHTML = '';
+            
+            Object.keys(appStructure).forEach(sectionName => {
+                const section = appStructure[sectionName];
+                const card = document.createElement('div');
+                card.className = 'section-card';
+                card.onclick = () => navigateToSection(sectionName);
+                card.innerHTML = `
+                    <button class="section-delete-btn" onclick="event.stopPropagation(); deleteSection('${sectionName}')">×</button>
+                    <div class="section-icon">${section.icon}</div>
+                    <h3>${sectionName}</h3>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function showDistrictSelection() {
+            document.getElementById('districtSelection').classList.add('show');
+        }
+
+        function selectDistrict(district) {
+            currentDistrict = district;
+            document.getElementById('districtBadge').textContent = district;
+            document.getElementById('districtSelection').classList.remove('show');
+        }
+
+        function navigateTo(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        function navigateToSection(sectionName) {
+            currentSection = sectionName;
+            document.getElementById('sectionPageTitle').textContent = sectionName;
+            renderCategories();
+            navigateTo('sectionPage');
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '';
+            container.className = 'categories-list';
+            
+            const categories = appStructure[currentSection].categories;
+            Object.keys(categories).forEach(categoryName => {
+                const category = categories[categoryName];
+                const item = document.createElement('div');
+                item.className = 'category-item';
+                item.onclick = () => navigateToCategory(categoryName);
+                item.innerHTML = `
+                    <h3>${category.icon} ${categoryName}</h3>
+                    <div>
+                        <button class="category-delete-btn" onclick="event.stopPropagation(); deleteCategory('${categoryName}')">Delete</button>
+                        <span class="arrow">→</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function navigateToCategory(categoryName) {
+            if (!currentDistrict) {
+                alert('Please select a district first');
+                navigateTo('home');
+                return;
+            }
+            currentCategory = categoryName;
+            document.getElementById('categoryPageTitle').textContent = `${appStructure[currentSection].categories[categoryName].icon} ${categoryName}`;
+            loadCategoryServices();
+            navigateTo('categoryPage');
+        }
+
+        function loadCategoryServices() {
+            const container = document.getElementById('categoryServicesContainer');
+            container.innerHTML = '<div class="loading">Loading services</div>';
+
+            database.ref(`districts/${currentDistrict}/${currentSection}/${currentCategory}`).once('value', (snapshot) => {
+                const services = snapshot.val() || [];
+                renderServices(services);
+            });
+        }
+
+        function renderServices(services) {
+            const container = document.getElementById('categoryServicesContainer');
+            
+            if (services.length === 0) {
+                container.innerHTML = '<p style="color: white; text-align: center;">No services available yet.</p>';
+                return;
+            }
+
+            container.innerHTML = services.map((service, index) => createServiceCard(service, index)).join('');
+        }
+
+        function createServiceCard(service, index) {
+            const whatsappBtn = `<button class="btn whatsapp-btn" onclick="openWhatsAppBooking(${index})">📱 Book on WhatsApp</button>`;
+            const callBtn = `<button class="btn call-btn" onclick="makeCall('${service.phone}')">📞 Call Now</button>`;
+            const deleteBtn = isAdminLoggedIn ? `<button class="delete-btn" onclick="deleteService(${index})">Delete</button>` : '';
+            
+            let serviceDetails = '';
+            Object.keys(service).forEach(key => {
+                if (key !== 'phone' && key !== 'name') {
+                    const displayKey = key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+                    const value = Array.isArray(service[key]) ? service[key].join(', ') : service[key];
+                    serviceDetails += `<p><strong>${displayKey}:</strong> ${value}</p>`;
+                }
+            });
+            
+            return `
+                <div class="service-card">
+                    <h3>${service.name || 'Service'}</h3>
+                    <p><strong>📞 Phone:</strong> <a href="tel:${service.phone}" style="color: #667eea; text-decoration: none;">${service.phone}</a></p>
+                    ${serviceDetails}
+                    ${whatsappBtn}
+                    ${callBtn}
+                    ${deleteBtn}
+                </div>
+            `;
+        }
+
+        function makeCall(phoneNumber) {
+            window.location.href = `tel:${phoneNumber}`;
+        }
+
+        function openWhatsAppBooking(serviceIndex) {
+            database.ref(`districts/${currentDistrict}/${currentSection}/${currentCategory}/${serviceIndex}`).once('value', (snapshot) => {
+                currentServiceData = snapshot.val();
+                showBookingModal();
+            });
+        }
+function showBookingModal() {
+            const modal = document.getElementById('bookingModal');
+            const title = document.getElementById('bookingModalTitle');
+            const content = document.getElementById('bookingModalContent');
+            
+            title.textContent = `Book ${currentCategory}`;
+            
+            let formHTML = '';
+            
+            if (currentSection === 'Medical') {
+                formHTML = `
+                    <label>Patient Name *</label>
+                    <input type="text" id="bookingName" placeholder="Enter patient name">
+                    
+                    <label>Appointment Date *</label>
+                    <input type="date" id="bookingDate" min="${new Date().toISOString().split('T')[0]}">
+                    
+                    <label>Patient Address *</label>
+                    <textarea id="bookingAddress" placeholder="Enter patient address"></textarea>
+                    
+                    <label>Patient Phone *</label>
+                    <input type="tel" id="bookingPhone" placeholder="Enter patient phone number">
+                    
+                    <label>Additional Details</label>
+                    <textarea id="bookingDetails" placeholder="Enter any symptoms or special requirements"></textarea>
+                `;
+            } else if (currentSection === 'Order Food') {
+                formHTML = `
+                    <label>Customer Name *</label>
+                    <input type="text" id="bookingName" placeholder="Enter your name">
+                    
+                    <label>Delivery Address *</label>
+                    <textarea id="bookingAddress" placeholder="Enter delivery address"></textarea>
+                    
+                    <label>Customer Phone *</label>
+                    <input type="tel" id="bookingPhone" placeholder="Enter your phone number">
+                    
+                    <label>What You Want to Order *</label>
+                    <textarea id="bookingOrder" placeholder="Enter items you want to order"></textarea>
+                    
+                    <label>Additional Details</label>
+                    <textarea id="bookingDetails" placeholder="Any special instructions"></textarea>
+                `;
+            } else if (currentSection === 'Night Stay') {
+                formHTML = `
+                    <label>Guest Name *</label>
+                    <input type="text" id="bookingName" placeholder="Enter guest name">
+                    
+                    <label>Check-in Date *</label>
+                    <input type="date" id="bookingCheckin" min="${new Date().toISOString().split('T')[0]}">
+                    
+                    <label>Check-out Date *</label>
+                    <input type="date" id="bookingCheckout" min="${new Date().toISOString().split('T')[0]}">
+                    
+                    <label>Guest Phone *</label>
+                    <input type="tel" id="bookingPhone" placeholder="Enter your phone number">
+                    
+                    <label>Number of Guests</label>
+                    <input type="number" id="bookingGuests" placeholder="Number of guests" min="1" value="1">
+                    
+                    <label>Additional Details</label>
+                    <textarea id="bookingDetails" placeholder="Room preferences or special requirements"></textarea>
+                `;
+            } else if (currentSection === 'Booking Cabs') {
+                formHTML = `
+                    <label>Customer Name *</label>
+                    <input type="text" id="bookingName" placeholder="Enter your name">
+                    
+                    <label>Where You Want to Go *</label>
+                    <input type="text" id="bookingDestination" placeholder="Enter destination">
+                    
+                    <label>Pickup Time *</label>
+                    <input type="time" id="bookingTime">
+                    
+                    <label>Pickup Date *</label>
+                    <input type="date" id="bookingDate" min="${new Date().toISOString().split('T')[0]}">
+                    
+                    <label>Customer Phone *</label>
+                    <input type="tel" id="bookingPhone" placeholder="Enter your phone number">
+                    
+                    <label>Pickup Location</label>
+                    <input type="text" id="bookingPickup" placeholder="Enter pickup location">
+                    
+                    <label>Additional Details</label>
+                    <textarea id="bookingDetails" placeholder="Any special requirements"></textarea>
+                `;
+            } else {
+                formHTML = `
+                    <label>Your Name *</label>
+                    <input type="text" id="bookingName" placeholder="Enter your name">
+                    
+                    <label>Your Phone *</label>
+                    <input type="tel" id="bookingPhone" placeholder="Enter your phone number">
+                    
+                    <label>Additional Details</label>
+                    <textarea id="bookingDetails" placeholder="Enter any specific requirements"></textarea>
+                `;
+            }
+            
+            formHTML += `
+                <button class="btn whatsapp-btn" onclick="sendWhatsAppMessage()">Send WhatsApp Message</button>
+                <button class="btn" style="background: #6c757d; margin-top: 10px;" onclick="closeBookingModal()">Cancel</button>
+            `;
+            
+            content.innerHTML = formHTML;
+            modal.classList.add('show');
+        }
+
+        function sendWhatsAppMessage() {
+            const name = document.getElementById('bookingName').value.trim();
+            const phone = document.getElementById('bookingPhone').value.trim();
+            
+            if (!name || !phone) {
+                alert('Please fill required fields');
+                return;
+            }
+            
+            let message = `*${currentSection} - ${currentCategory} Booking*\n\n`;
+            
+            if (currentSection === 'Medical') {
+                const date = document.getElementById('bookingDate').value;
+                const address = document.getElementById('bookingAddress').value.trim();
+                const details = document.getElementById('bookingDetails').value.trim();
+                
+                if (!date || !address) {
+                    alert('Please fill all required fields');
+                    return;
+                }
+                
+                message += `Patient Name: ${name}\n`;
+                message += `Appointment Date: ${date}\n`;
+                message += `Patient Address: ${address}\n`;
+                message += `Patient Phone: ${phone}\n`;
+                if (details) message += `Details: ${details}\n`;
+                
+            } else if (currentSection === 'Order Food') {
+                const address = document.getElementById('bookingAddress').value.trim();
+                const order = document.getElementById('bookingOrder').value.trim();
+                const details = document.getElementById('bookingDetails').value.trim();
+                
+                if (!address || !order) {
+                    alert('Please fill all required fields');
+                    return;
+                }
+                
+                message += `Customer Name: ${name}\n`;
+                message += `Delivery Address: ${address}\n`;
+                message += `Customer Phone: ${phone}\n`;
+                message += `Order: ${order}\n`;
+                if (details) message += `Special Instructions: ${details}\n`;
+                
+            } else if (currentSection === 'Night Stay') {
+                const checkin = document.getElementById('bookingCheckin').value;
+                const checkout = document.getElementById('bookingCheckout').value;
+                const guests = document.getElementById('bookingGuests').value;
+                const details = document.getElementById('bookingDetails').value.trim();
+                
+                if (!checkin || !checkout) {
+                    alert('Please fill all required fields');
+                    return;
+                }
+                
+                message += `Guest Name: ${name}\n`;
+                message += `Check-in Date: ${checkin}\n`;
+                message += `Check-out Date: ${checkout}\n`;
+                message += `Guest Phone: ${phone}\n`;
+                message += `Number of Guests: ${guests}\n`;
+                if (details) message += `Details: ${details}\n`;
+                
+            } else if (currentSection === 'Booking Cabs') {
+                const destination = document.getElementById('bookingDestination').value.trim();
+                const time = document.getElementById('bookingTime').value;
+                const date = document.getElementById('bookingDate').value;
+                const pickup = document.getElementById('bookingPickup').value.trim();
+                const details = document.getElementById('bookingDetails').value.trim();
+                
+                if (!destination || !time || !date) {
+                    alert('Please fill all required fields');
+                    return;
+                }
+                
+                message += `Customer Name: ${name}\n`;
+                message += `Destination: ${destination}\n`;
+                message += `Pickup Time: ${time}\n`;
+                message += `Pickup Date: ${date}\n`;
+                message += `Customer Phone: ${phone}\n`;
+                if (pickup) message += `Pickup Location: ${pickup}\n`;
+                if (details) message += `Details: ${details}\n`;
+                
+            } else {
+                const details = document.getElementById('bookingDetails').value.trim();
+                message += `Customer Name: ${name}\n`;
+                message += `Customer Phone: ${phone}\n`;
+                if (details) message += `Details: ${details}\n`;
+            }
+            
+            message += `\nService: ${currentServiceData.name || currentCategory}\n`;
+            message += `District: ${currentDistrict}\n`;
+            message += `\nPlease confirm availability.`;
+            
+            const servicePhone = currentServiceData.phone.replace(/[^0-9]/g, '');
+            const whatsappURL = `https://wa.me/${servicePhone}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, '_blank');
+            
+            closeBookingModal();
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.remove('show');
+        }
+
+        function goBackToSection() {
+            navigateToSection(currentSection);
+        }
+
+        function goBackToCategory() {
+            navigateToCategory(currentCategory);
+        }
+
+        function showAdminLogin() {
+            document.getElementById('adminLogin').classList.add('show');
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('adminLogin').classList.remove('show');
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function checkAdminLogin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'ZinteBar@2024#Admin@Sahil') {
+                isAdminLoggedIn = true;
+                alert('Admin login successful!');
+                closeAdminLogin();
+                showAdminButtons();
+            } else {
+                alert('Incorrect password!');
+            }
+        }
+
+        function showAdminButtons() {
+            document.getElementById('addSectionBtn').style.display = 'block';
+            document.getElementById('addCategoryBtn').style.display = 'block';
+            document.getElementById('addServiceBtn').style.display = 'block';
+            document.getElementById('whatsappIcon').style.display = 'flex';
+            document.body.classList.add('admin-mode');
+        }
+
+        function showAddSection() {
+            navigateTo('addSectionPage');
+        }
+
+        function submitNewSection() {
+            const sectionName = document.getElementById('newSectionName').value.trim();
+            const sectionIcon = document.getElementById('newSectionIcon').value.trim();
+
+            if (!sectionName || !sectionIcon) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            if (appStructure[sectionName]) {
+                alert('Section already exists!');
+                return;
+            }
+
+            appStructure[sectionName] = {
+                icon: sectionIcon,
+                categories: {}
+            };
+
+            database.ref('appStructure').set(appStructure)
+                .then(() => {
+                    alert('Section added successfully!');
+                    document.getElementById('newSectionName').value = '';
+                    document.getElementById('newSectionIcon').value = '';
+                    renderHomeSections();
+                    navigateTo('home');
+                })
+                .catch((error) => {
+                    console.error('Error adding section:', error);
+                    alert('Error: ' + error.message);
+                });
+        }
+
+        function deleteSection(sectionName) {
+            if (!confirm(`Are you sure you want to delete "${sectionName}" section? This will delete all categories and services under it.`)) {
+                return;
+            }
+
+            delete appStructure[sectionName];
+
+            database.ref('appStructure').set(appStructure)
+                .then(() => {
+                    database.ref(`districts/${currentDistrict}/${sectionName}`).remove();
+                    alert('Section deleted successfully!');
+                    renderHomeSections();
+                })
+                .catch((error) => {
+                    console.error('Error deleting section:', error);
+                    alert('Error: ' + error.message);
+                });
+        }
+
+        document.getElementById('addCategoryBtn').addEventListener('click', () => {
+            navigateTo('addCategoryPage');
+        });
+
+        function submitNewCategory() {
+            const categoryName = document.getElementById('newCategoryName').value.trim();
+            const categoryIcon = document.getElementById('newCategoryIcon').value.trim();
+
+            if (!categoryName || !categoryIcon) {
+                alert('Please fill all fields');
+                return;
+            }
+
+            if (appStructure[currentSection].categories[categoryName]) {
+                alert('Category already exists!');
+                return;
+            }
+
+            appStructure[currentSection].categories[categoryName] = {
+                icon: categoryIcon
+            };
+
+            database.ref('appStructure').set(appStructure)
+                .then(() => {
+                    alert('Category added successfully!');
+                    document.getElementById('newCategoryName').value = '';
+                    document.getElementById('newCategoryIcon').value = '';
+                    renderCategories();
+                    navigateToSection(currentSection);
+                })
+                .catch((error) => {
+                    console.error('Error adding category:', error);
+                    alert('Error: ' + error.message);
+                });
+        }
+
+        function deleteCategory(categoryName) {
+            if (!confirm(`Are you sure you want to delete "${categoryName}" category? This will delete all services under it.`)) {
+                return;
+            }
+
+            delete appStructure[currentSection].categories[categoryName];
+
+            database.ref('appStructure').set(appStructure)
+                .then(() => {
+                    database.ref(`districts/${currentDistrict}/${currentSection}/${categoryName}`).remove();
+                    alert('Category deleted successfully!');
+                    renderCategories();
+                })
+                .catch((error) => {
+                    console.error('Error deleting category:', error);
+                    alert('Error: ' + error.message);
+                });
+        }
+
+        document.getElementById('addServiceBtn').addEventListener('click', () => {
+            showAddServiceForm();
+        });
+
+        function showAddServiceForm() {
+            const container = document.getElementById('serviceFormContainer');
+            
+            let formHTML = `
+                <div class="form-group">
+                    <label>Service/Business Name *</label>
+                    <input type="text" id="serviceName" placeholder="Enter name">
+                </div>
+                <div class="form-group">
+                    <label>Address *</label>
+                    <textarea id="serviceAddress" placeholder="Enter address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input type="tel" id="servicePhone" placeholder="Enter phone number">
+                </div>
+            `;
+
+            if (currentSection === 'Medical') {
+                formHTML += `
+                    <div class="form-group">
+                        <label>Available Days *</label>
+                        <div class="days-selection">
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-monday">
+                                <label for="day-monday">Monday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-tuesday">
+                                <label for="day-tuesday">Tuesday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-wednesday">
+                                <label for="day-wednesday">Wednesday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-thursday">
+                                <label for="day-thursday">Thursday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-friday">
+                                <label for="day-friday">Friday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-saturday">
+                                <label for="day-saturday">Saturday</label>
+                            </div>
+                            <div class="day-checkbox">
+                                <input type="checkbox" id="day-sunday">
+                                <label for="day-sunday">Sunday</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Consultation Fee</label>
+                        <input type="text" id="consultationFee" placeholder="Enter fee (optional)">
+                    </div>
+                `;
+            } else if (currentSection === 'Order Food') {
+                formHTML += `
+                    <div class="form-group">
+                        <label>Available Dishes/Menu *</label>
+                        <textarea id="availableDishes" placeholder="Enter available dishes"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Available</label>
+                        <select id="deliveryAvailable">
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                `;
+            } else if (currentSection === 'Night Stay') {
+                formHTML += `
+                    <div class="form-group">
+                        <label>Services & Amenities *</label>
+                        <textarea id="hotelServices" placeholder="Enter services and amenities"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Room Types Available</label>
+                        <input type="text" id="roomTypes" placeholder="e.g., Single, Double, Suite">
+                    </div>
+                    <div class="form-group">
+                        <label>Price Range</label>
+                        <input type="text" id="priceRange" placeholder="e.g., ₹1000-₹3000">
+                    </div>
+                `;
+            } else if (currentSection === 'Booking Cabs') {
+                formHTML += `
+                    <div class="form-group">
+                        <label>Available Routes *</label>
+                        <textarea id="cabRoutes" placeholder="Enter available routes"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Type</label>
+                        <input type="text" id="vehicleType" placeholder="e.g., Sedan, SUV, Mini Van">
+                    </div>
+                    <div class="form-group">
+                        <label>Rate per KM</label>
+                        <input type="text" id="ratePerKm" placeholder="e.g., ₹15/km">
+                    </div>
+                `;
+            } else {
+                formHTML += `
+                    <div class="form-group">
+                        <label>Service Details *</label>
+                        <textarea id="serviceDetails" placeholder="Enter service details"></textarea>
+                    </div>
+                `;
+            }
+
+            formHTML += `<button class="btn" onclick="submitService()">Submit Service</button>`;
+            
+            container.innerHTML = formHTML;
+            navigateTo('addServicePage');
+        }
+
+        function submitService() {
+            if (!currentDistrict) {
+                alert('Please select a district first');
+                return;
+            }
+
+            const name = document.getElementById('serviceName').value.trim();
+            const address = document.getElementById('serviceAddress').value.trim();
+            const phone = document.getElementById('servicePhone').value.trim();
+
+            if (!name || !address || !phone) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            const newService = {
+                name: name,
+                address: address,
+                phone: phone
+            };
+
+            if (currentSection === 'Medical') {
+                const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+                const availableDays = days.filter(day => 
+                    document.getElementById(`day-${day}`) && document.getElementById(`day-${day}`).checked
+                ).map(day => day.charAt(0).toUpperCase() + day.slice(1));
+
+                if (availableDays.length === 0) {
+                    alert('Please select at least one day');
+                    return;
+                }
+
+                newService.availableDays = availableDays;
+                
+                const fee = document.getElementById('consultationFee').value.trim();
+                if (fee) newService.consultationFee = fee;
+
+            } else if (currentSection === 'Order Food') {
+                const dishes = document.getElementById('availableDishes').value.trim();
+                if (!dishes) {
+                    alert('Please enter available dishes');
+                    return;
+                }
+                newService.availableDishes = dishes;
+                newService.delivery = document.getElementById('deliveryAvailable').value;
+
+            } else if (currentSection === 'Night Stay') {
+                const services = document.getElementById('hotelServices').value.trim();
+                if (!services) {
+                    alert('Please enter services and amenities');
+                    return;
+                }
+                newService.servicesAmenities = services;
+                
+                const roomTypes = document.getElementById('roomTypes').value.trim();
+                if (roomTypes) newService.roomTypes = roomTypes;
+                
+                const priceRange = document.getElementById('priceRange').value.trim();
+                if (priceRange) newService.priceRange = priceRange;
+
+            } else if (currentSection === 'Booking Cabs') {
+                const routes = document.getElementById('cabRoutes').value.trim();
+                if (!routes) {
+                    alert('Please enter available routes');
+                    return;
+                }
+                newService.availableRoutes = routes;
+                
+                const vehicleType = document.getElementById('vehicleType').value.trim();
+                if (vehicleType) newService.vehicleType = vehicleType;
+                
+                const rate = document.getElementById('ratePerKm').value.trim();
+                if (rate) newService.ratePerKm = rate;
+
+            } else {
+                const details = document.getElementById('serviceDetails').value.trim();
+                if (!details) {
+                    alert('Please enter service details');
+                    return;
+                }
+                newService.details = details;
+            }
+
+            database.ref(`districts/${currentDistrict}/${currentSection}/${currentCategory}`).once('value', (snapshot) => {
+                const services = snapshot.val() || [];
+                services.push(newService);
+                
+                database.ref(`districts/${currentDistrict}/${currentSection}/${currentCategory}`).set(services)
+                    .then(() => {
+                        alert('Service added successfully!');
+                        navigateToCategory(currentCategory);
+                    })
+                    .catch((error) => {
+                        console.error('Error adding service:', error);
+                        alert('Error: ' + error.message);
+                    });
+            });
+        }
+
+        function deleteService(index) {
+            if (!confirm('Are you sure you want to delete this service?')) {
+                return;
+            }
+
+            database.ref(`districts/${currentDistrict}/${currentSection}/${currentCategory}`).once('value', (snapshot) => {
+                const services = snapshot.val() || [];
+                services.splice(index, 1);
+                
+                database.ref(`districts/${currentDistrict}/${currentSection}/${currentCategory}`).set(services)
+                    .then(() => {
+                        alert('Service deleted successfully!');
+                        loadCategoryServices();
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting service:', error);
+                        alert('Error: ' + error.message);
+                    });
+            });
+        }
+
+        document.getElementById('registerServiceBtn').addEventListener('click', () => {
+            registerService();
+        });
+
+        function registerService() {
+            if (!currentDistrict) {
+                alert('Please select a district first');
+                navigateTo('home');
+                return;
+            }
+
+            const categorySelect = document.getElementById('regCategory');
+            categorySelect.innerHTML = '<option value="">Choose...</option>';
+            
+            Object.keys(appStructure[currentSection].categories).forEach(categoryName => {
+                const option = document.createElement('option');
+                option.value = categoryName;
+                option.textContent = categoryName;
+                categorySelect.appendChild(option);
+            });
+
+            navigateTo('registration');
+        }
+
+        function submitRegistration() {
+            const name = document.getElementById('regName').value.trim();
+            const address = document.getElementById('regAddress').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const licence = document.getElementById('regLicence').value.trim();
+            const category = document.getElementById('regCategory').value;
+
+            if (!name || !address || !phone || !licence || !category) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            if (!currentDistrict) {
+                alert('Please select a district first');
+                return;
+            }
+
+            const registration = {
+                section: currentSection,
+                category: category,
+                name: name,
+                address: address,
+                phone: phone,
+                licence: licence,
+                district: currentDistrict,
+                status: 'Pending',
+                date: new Date().toLocaleDateString()
+            };
+
+            sendRegistrationToWhatsApp(registration);
+
+            document.getElementById('userStatus').textContent = 'Pending';
+            document.getElementById('userService').textContent = `${currentSection} - ${category}`;
+            document.getElementById('userDistrict').textContent = currentDistrict;
+            document.getElementById('submittedDate').textContent = registration.date;
+
+            document.getElementById('regName').value = '';
+            document.getElementById('regAddress').value = '';
+            document.getElementById('regPhone').value = '';
+            document.getElementById('regLicence').value = '';
+            document.getElementById('regCategory').value = '';
+
+            navigateTo('successPage');
+        }
+
+        function sendRegistrationToWhatsApp(registration) {
+            const phoneNumber = '919797102019';
+            let message = `*New ZinteBar Registration*\n\n`;
+            message += `*Section:* ${registration.section}\n`;
+            message += `*Category:* ${registration.category}\n`;
+            message += `*District:* ${registration.district}\n`;
+            message += `*Name:* ${registration.name}\n`;
+            message += `*Address:* ${registration.address}\n`;
+            message += `*Phone:* ${registration.phone}\n`;
+            message += `*Licence:* ${registration.licence}\n`;
+            message += `*Date:* ${registration.date}\n`;
+            message += `*Status:* ${registration.status}`;
+
+            const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, '_blank');
+        }
+
+        function sendAdminWhatsAppMessage() {
+            const adminPhone = '919797102019';
+            const message = `*Message from ZinteBar User*\n\n` +
+                           `Hello, I am contacting you regarding ZinteBar services.\n` +
+                           `District: ${currentDistrict || 'Not selected'}`;
+            
+            const whatsappURL = `https://wa.me/${adminPhone}?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, '_blank');
+        }
+
+        console.log(`ZinteBar v${APP_VERSION} (Build ${VERSION_CODE})`);
+    </script>
+</body>
+</html>
